@@ -1,159 +1,105 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>梦幻水族箱</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes float {
-
-      0%,
-      100% {
-        transform: translateY(0);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>梦幻水族箱</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      
+      @keyframes bubble {
+        0% { transform: translateY(0) scale(0.5); opacity: 0; }
+        10% { opacity: 0.5; }
+        100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
       }
 
-      50% {
-        transform: translateY(-10px);
+      /* Volumetric Light Animations */
+      @keyframes spin-slow {
+        from { transform: rotate(0deg) scale(1.5); }
+        to { transform: rotate(360deg) scale(1.5); }
       }
-    }
-
-    @keyframes bubble {
-      0% {
-        transform: translateY(0) scale(0.5);
-        opacity: 0;
+      
+      @keyframes spin-reverse-slower {
+        from { transform: rotate(360deg) scale(1.5); }
+        to { transform: rotate(0deg) scale(1.5); }
       }
-
-      10% {
-        opacity: 0.5;
-      }
-
-      100% {
-        transform: translateY(-120vh) scale(1.2);
-        opacity: 0;
-      }
-    }
-
-    /* Volumetric Light Animations */
-    @keyframes spin-slow {
-      from {
-        transform: rotate(0deg) scale(1.5);
+      
+      /* Smooth swaying for light rays */
+      @keyframes ray-sway {
+        0%, 100% { transform: rotate(-5deg) translateX(-2%); }
+        50% { transform: rotate(5deg) translateX(2%); }
       }
 
-      to {
-        transform: rotate(360deg) scale(1.5);
+      @keyframes ray-sway-reverse {
+        0%, 100% { transform: rotate(3deg) translateX(1%); }
+        50% { transform: rotate(-3deg) translateX(-1%); }
       }
-    }
-
-    @keyframes spin-reverse-slower {
-      from {
-        transform: rotate(360deg) scale(1.5);
-      }
-
-      to {
-        transform: rotate(0deg) scale(1.5);
-      }
-    }
-
-    /* Smooth swaying for light rays */
-    @keyframes ray-sway {
-
-      0%,
-      100% {
-        transform: rotate(-5deg) translateX(-2%);
+      
+      /* Click Ripple Effect */
+      @keyframes ripple-expand {
+        0% {
+          transform: translate(-50%, -50%) scale(0);
+          opacity: 0.8;
+          border-width: 4px;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(3);
+          opacity: 0;
+          border-width: 0px;
+        }
       }
 
-      50% {
-        transform: rotate(5deg) translateX(2%);
-      }
-    }
-
-    @keyframes ray-sway-reverse {
-
-      0%,
-      100% {
-        transform: rotate(3deg) translateX(1%);
+      /* Eating Effect - Removed transform to avoid conflict with JS physics */
+      @keyframes eat-flash {
+        0% { filter: brightness(1); }
+        50% { filter: brightness(2) drop-shadow(0 0 10px gold); }
+        100% { filter: brightness(1); }
       }
 
-      50% {
-        transform: rotate(-3deg) translateX(-1%);
-      }
-    }
-
-    /* Click Ripple Effect */
-    @keyframes ripple-expand {
-      0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0.8;
-        border-width: 4px;
+      .fish-eating-glow {
+         animation: eat-flash 0.4s ease-out forwards;
       }
 
-      100% {
-        transform: translate(-50%, -50%) scale(3);
-        opacity: 0;
-        border-width: 0px;
-      }
-    }
-
-    /* Eating Effect - Removed transform to avoid conflict with JS physics */
-    @keyframes eat-flash {
-      0% {
-        filter: brightness(1);
+      .bubble {
+        position: absolute;
+        top: 100%; /* Default position off-screen at the bottom */
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+        border-radius: 50%;
+        box-shadow: 0 0 2px rgba(255,255,255,0.1);
+        pointer-events: none;
       }
 
-      50% {
-        filter: brightness(2) drop-shadow(0 0 10px gold);
+      .ripple {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        pointer-events: none;
+        animation: ripple-expand 0.8s ease-out forwards;
+        z-index: 40; /* Above fish/bubbles but below UI */
+        will-change: transform, opacity;
       }
 
-      100% {
-        filter: brightness(1);
+      .fish-food {
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        background: #d97706; /* Amber-600 */
+        border-radius: 50%;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        z-index: 15;
+        pointer-events: none;
       }
-    }
+    </style>
 
-    .fish-eating-glow {
-      animation: eat-flash 0.4s ease-out forwards;
-    }
-
-    .bubble {
-      position: absolute;
-      top: 100%;
-      /* Default position off-screen at the bottom */
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
-      border-radius: 50%;
-      box-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
-      pointer-events: none;
-    }
-
-    .ripple {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-      border: 2px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-      pointer-events: none;
-      animation: ripple-expand 0.8s ease-out forwards;
-      z-index: 40;
-      /* Above fish/bubbles but below UI */
-      will-change: transform, opacity;
-    }
-
-    .fish-food {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      background: #d97706;
-      /* Amber-600 */
-      border-radius: 50%;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-      z-index: 15;
-      pointer-events: none;
-    }
-  </style>
-
-  <link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="/index.css">
   <script type="importmap">
 {
   "imports": {
@@ -164,11 +110,10 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/SimulatedAquariumPage/assets/index-3i-Z8MhV.js"></script>
+  <script type="module" crossorigin src="./assets/index-DS5LRs6w.js"></script>
 </head>
+  <body>
+    <div id="root"></div>
 
-<body>
-  <div id="root"></div>
 </body>
-
 </html>
